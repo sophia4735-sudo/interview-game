@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>今天面試不要迷路</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top, #dff7ff, #86d3ff 45%, #2c4f8f);
+      font-family: "Microsoft JhengHei", system-ui, sans-serif;
+      color: #172033;
+      overflow: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.23);
+      filter: blur(2px);
+      animation: bgFloat 7s infinite ease-in-out;
+      pointer-events: none;
+    }
+
+    body::before {
+      left: -70px;
+      top: 80px;
+    }
+
+    body::after {
+      right: -80px;
+      bottom: 60px;
+      animation-delay: 1.2s;
+    }
+
+    .phone {
+      width: min(96vw, 460px);
+      height: min(94vh, 800px);
+      background: #fffdf4;
+      border: 8px solid #111;
+      border-radius: 38px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.36);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .status-bar {
+      height: 34px;
+      background: #111;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 18px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+
+    .screen {
+      position: absolute;
+      top: 34px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 34px);
+      display: none;
+      flex-direction: column;
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .screen.active {
+      display: flex;
+      animation: screenIn 0.32s ease-out;
+    }
+
+    .start-bg {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255,255,255,0.9), transparent 16%),
+        radial-gradient(circle at 82% 22%, rgba(255,255,255,0.78), transparent 14%),
+        linear-gradient(180deg, #fff9cc, #b7efff 62%, #82d36a);
+    }
+
+    .start-bg::before,
+    .start-bg::after {
+      position: absolute;
+      font-size: 34px;
+      animation: floatIcon 3s infinite ease-in-out;
+      pointer-events: none;
+    }
+
+    .start-bg::before {
+      content: "📍";
+      left: 28px;
+      top: 86px;
+      transform: rotate(-12deg);
+    }
+
+    .start-bg::after {
+      content: "🪪";
+      right: 34px;
+      bottom: 110px;
+      transform: rotate(10deg);
+      animation-delay: 0.8s;
+    }
+
+    .game-bg {
+      background:
+        linear-gradient(rgba(255,255,255,0.82), rgba(255,255,255,0.92)),
+        repeating-linear-gradient(0deg, #f4f7ff, #f4f7ff 24px, #e9efff 24px, #e9efff 48px);
+    }
+
+    .final-bg {
+      background:
+        radial-gradient(circle at top, rgba(255, 235, 59, 0.38), transparent 25%),
+        linear-gradient(180deg, #fff8dc, #e5f7ff);
+      overflow-y: auto;
+      gap: 12px;
+      padding-bottom: 36px;
+      align-items: stretch;
+    }
+
+    h1 {
+      font-size: clamp(35px, 10vw, 56px);
+      line-height: 1.05;
+      font-weight: 1000;
+      margin: 12px 0;
+      color: #163f8f;
+      text-shadow: 3px 3px 0 #fff, 6px 6px 0 #ffd84d;
+    }
+
+    h2 {
+      font-size: clamp(26px, 7vw, 36px);
+      line-height: 1.18;
+      font-weight: 1000;
+      color: #163f8f;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.55;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .small {
+      font-size: 13px;
+      line-height: 1.55;
+      opacity: 0.75;
+    }
+
+    .icman {
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 5px solid #111;
+      background: #fff;
+      box-shadow: 8px 8px 0 rgba(0,0,0,0.22);
+      flex-shrink: 0;
+      animation: icFloat 2.4s infinite ease-in-out;
+    }
+
+    .icman.mini {
+      width: 68px;
+      height: 68px;
+      border-width: 3px;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.18);
+      animation: icWiggle 2.8s infinite ease-in-out;
+    }
+
+    .ic-fallback {
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      border: 5px solid #111;
+      background: #ffeb3b;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      font-size: 58px;
+      box-shadow: 8px 8px 0 rgba(0,0,0,0.22);
+      flex-shrink: 0;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #111;
+      color: #fff;
+      padding: 7px 13px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .card {
+      width: 100%;
+      background: #fff;
+      border: 4px solid #111;
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 8px 8px 0 #111;
+      margin: 12px 0;
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      background: linear-gradient(180deg, #1d72ff, #0b3c91);
+      color: white;
+      font-size: 17px;
+      font-weight: 1000;
+      padding: 12px 16px;
+      border-radius: 18px;
+      cursor: pointer;
+      box-shadow: 0 7px 0 #08245a;
+      transition: 0.12s;
+      margin: 0;
+      text-decoration: none;
+      display: block;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      line-height: 1.3;
+    }
+
+    .btn::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -80%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent);
+      transform: skewX(-18deg);
+      animation: shine 2.4s infinite;
+    }
+
+    .btn:hover {
+      transform: translateY(2px);
+      box-shadow: 0 5px 0 #08245a;
+    }
+
+    .btn:active {
+      transform: translateY(7px);
+      box-shadow: none;
+    }
+
+    .btn.secondary {
+      background: linear-gradient(180deg, #222, #000);
+      box-shadow: 0 7px 0 #555;
+    }
+
+    .btn.yellow {
+      background: linear-gradient(180deg, #ffd84d, #f5a900);
+      color: #23120b;
+      box-shadow: 0 7px 0 #9c6500;
+    }
+
+    .top-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    .dialogue {
+      flex: 1;
+      background: #fff;
+      border: 3px solid #111;
+      border-radius: 18px;
+      padding: 12px;
+      box-shadow: 5px 5px 0 rgba(0,0,0,0.12);
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 800;
+    }
+
+    .progress-wrap {
+      width: 100%;
+      height: 17px;
+      background: #fff;
+      border: 3px solid #111;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 8px 0 14px;
+      flex-shrink: 0;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #4be16b, #ffe94d, #ff7a7a);
+      transition: width 0.25s;
+    }
+
+    .stage-area {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 2px;
+      text-align: center;
+    }
+
+    .choice {
+      width: 100%;
+      background: #fff;
+      border: 3px solid #111;
+      border-radius: 18px;
+      padding: 14px;
+      margin: 9px 0;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 5px 5px 0 rgba(0,0,0,0.14);
+      transition: 0.12s;
+      text-align: left;
+      animation: cardPop 0.28s ease-out both;
+    }
+
+    .choice:hover,
+    .choice.selected {
+      background: #dff7ff;
+      transform: translateY(2px);
+      box-shadow: 3px 3px 0 rgba(0,0,0,0.16);
+    }
+
+    .choice.correct {
+      background: #c9ffd4;
+      border-color: #0b7d2c;
+    }
+
+    .choice.wrong {
+      background: #ffd1d1;
+      border-color: #c40000;
+    }
+
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .item {
+      background: #fff;
+      border: 3px solid #111;
+      border-radius: 18px;
+      padding: 13px 8px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.16);
+      transition: 0.12s;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      animation: cardPop 0.28s ease-out both;
+    }
+
+    .item .emoji {
+      font-size: 32px;
+    }
+
+    .item.selected {
+      background: #fff2a8;
+      transform: translateY(2px);
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.16);
+    }
+
+    .map {
+      position: relative;
+      width: 100%;
+      height: 320px;
+      border: 4px solid #111;
+      border-radius: 24px;
+      background:
+        linear-gradient(90deg, transparent 49%, rgba(0,0,0,0.13) 49% 51%, transparent 51%),
+        linear-gradient(#f5f5f5 0 52%, #d2f0ff 52% 100%);
+      box-shadow: 6px 6px 0 #111;
+      margin: 12px 0;
+      overflow: hidden;
+    }
+
+    .room {
+      position: absolute;
+      width: 84px;
+      height: 72px;
+      border: 4px solid #111;
+      background: #fff;
+      border-radius: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      font-weight: 1000;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.18);
+    }
+
+    .room.o306 { left: 26px; top: 34px; background: #fff2a8; }
+    .room.o303 { right: 26px; top: 34px; background: #c9ffd4; }
+    .room.o308 { left: 50%; transform: translateX(-50%); bottom: 34px; background: #ffd1d1; }
+
+    .route-line {
+      position: absolute;
+      left: 50%;
+      top: 122px;
+      transform: translateX(-50%);
+      font-size: 40px;
+    }
+
+    .order-card {
+      background: #fff;
+      border: 3px solid #111;
+      border-radius: 16px;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 15px;
+      font-weight: 900;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.14);
+      transition: 0.12s;
+    }
+
+    .order-card.done {
+      background: #c9ffd4;
+      opacity: 0.75;
+    }
+
+    .order-number {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #111;
+      color: #fff;
+      margin-right: 8px;
+      font-size: 13px;
+    }
+
+    .result-box {
+      width: 100%;
+      background: #fff;
+      border: 4px solid #111;
+      border-radius: 22px;
+      padding: 18px;
+      margin: 8px 0;
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.18);
+      text-align: left;
+      line-height: 1.8;
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .final-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 8px;
+      padding-bottom: 20px;
+      flex-shrink: 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      background: #111;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 900;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 20;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      animation: toast 1.1s forwards;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 14px;
+      border-radius: 3px;
+      top: 76px;
+      left: 50%;
+      z-index: 30;
+      pointer-events: none;
+      animation: confettiFall 0.95s forwards ease-out;
+    }
+
+    @keyframes toast {
+      0% { opacity: 0; transform: translate(-50%, 20px); }
+      18%, 75% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, 20px); }
+    }
+
+    @keyframes bgFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(24px, -18px) scale(1.08); }
+    }
+
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes icFloat {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-9px) rotate(2deg); }
+    }
+
+    @keyframes icWiggle {
+      0%, 100% { transform: rotate(-3deg); }
+      50% { transform: rotate(3deg); }
+    }
+
+    @keyframes floatIcon {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 -12px; }
+    }
+
+    @keyframes shine {
+      0% { left: -80%; }
+      45%, 100% { left: 130%; }
+    }
+
+    @keyframes cardPop {
+      from { opacity: 0; transform: translateY(8px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes confettiFall {
+      0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+      100% { transform: translate(var(--x), var(--y)) rotate(450deg); opacity: 0; }
+    }
+
+    @media (max-height: 720px) {
+      .icman { width: 105px; height: 105px; }
+      .icman.mini { width: 58px; height: 58px; }
+      .map { height: 260px; }
+      .item { min-height: 78px; }
+      h1 { font-size: 36px; }
+      h2 { font-size: 24px; }
+      p { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="status-bar">
+      <span>09:30</span>
+      <span>TKUIC 100%</span>
+    </div>
+
+    <section class="screen start-bg active" id="startScreen">
+      <img class="icman" src="icman.png" alt="IC MAN" onerror="this.style.display='none'; document.getElementById('icFallbackStart').style.display='flex';" />
+      <div class="ic-fallback" id="icFallbackStart">🎧</div>
+      <span class="tag">TKUIC 面試小幫手｜IC MAN</span>
+      <h1>今天面試<br>不要迷路</h1>
+      <div class="card">
+        <p>恭喜進入第二階段！跟著 IC MAN 完成面試闖關，快速了解面試當天流程與準備重點。</p>
+        <p class="small">適合面試前快速複習，也適合現在有點緊張的你。</p>
+      </div>
+      <button class="btn yellow" onclick="startGame()">開始面試任務</button>
+    </section>
+
+    <section class="screen game-bg" id="gameScreen">
+      <div class="top-row">
+        <img class="icman mini" src="icman.png" alt="IC MAN" onerror="this.style.display='none';" />
+        <div class="dialogue" id="icDialogue">IC MAN：準備好了嗎？</div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="stage-area" id="stageArea"></div>
+      <div class="toast" id="toast">提示</div>
+    </section>
+
+    <section class="screen final-bg" id="finalScreen">
+      <div class="top-row">
+        <img class="icman mini" src="icman.png" alt="IC MAN" onerror="this.style.display='none';" />
+        <div class="dialogue">IC MAN：恭喜完成面試模擬！下面幫你整理最重要的資訊。</div>
+      </div>
+      <h2>面試任務完成！</h2>
+      <div class="result-box">
+        <strong>淡江大學資訊傳播學系 115 學年度大學申請入學第二階段面試提醒</strong><br><br>
+        面試日期｜5/15（五）– 5/17（日）<br>
+        到場提醒｜請依預約時段提前到場準備<br>
+        報到地點｜淡水校園 傳播館 O306<br>
+        等候地點｜唱名後前往 O303<br>
+        面試試場｜傳播館 O308<br>
+        面試方式｜三位委員對一位考生，約 5–6 分鐘<br>
+        必帶物品｜有照片之身分證明文件<br>
+        服裝提醒｜不限服裝，乾淨整潔、舒適即可<br>
+        臨時狀況｜請提前聯繫招生中心或本系協助處理
+      </div>
+      <div class="final-actions">
+        <a class="btn" href="https://www.tku.edu.tw/road.asp" target="_blank">查看淡江交通資訊</a>
+        <button class="btn yellow" onclick="shareGame()">分享給需要面試的人</button>
+        <button class="btn secondary" onclick="restart()">再玩一次</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const startScreen = document.getElementById("startScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const finalScreen = document.getElementById("finalScreen");
+    const stageArea = document.getElementById("stageArea");
+    const icDialogue = document.getElementById("icDialogue");
+    const progressBar = document.getElementById("progressBar");
+    const toast = document.getElementById("toast");
+
+    let stage = 0;
+    let selectedItems = new Set();
+    let orderStep = 0;
+
+    const stages = [
+      {
+        type: "items",
+        title: "第 1 關｜出門前檢查",
+        dialogue: "IC MAN：出門前先檢查背包，不要到報到處才發現少東西。",
+        question: "面試當天一定要帶哪一樣？點選後按確認。",
+        items: [
+          { label: "有照片的身分證明文件", emoji: "🪪", key: "id" },
+          { label: "巨大玩偶", emoji: "🧸", key: "toy" },
+          { label: "睡不醒的靈魂", emoji: "😵", key: "sleep" },
+          { label: "紙本書審資料", emoji: "📄", key: "paper" }
+        ],
+        required: "id",
+        tip: "面試當天請攜帶有照片之身分證明文件，例如身分證、護照、駕照、健保卡或學生證。紙本書審資料可自行決定是否攜帶。"
+      },
+      {
+        type: "choice",
+        title: "第 2 關｜穿搭選擇",
+        dialogue: "IC MAN：不用把自己包裝成另一個人，乾淨自然就很好。",
+        question: "面試要穿什麼比較適合？",
+        options: [
+          "乾淨整潔、舒適自然",
+          "睡衣，主打一個鬆弛感",
+          "華麗到像要走紅毯"
+        ],
+        answer: 0,
+        tip: "本系不限服裝，衣著以舒適為原則，乾淨整齊即可。"
+      },
+      {
+        type: "map",
+        title: "第 3 關｜報到不要迷路",
+        dialogue: "IC MAN：到了傳播館，請先找到正確報到地點。",
+        question: "考生面試當天要先去哪裡報到？",
+        answer: "O306",
+        tip: "報到地點是傳播館 O306；面試試場是 O308；唱名後會先到 O303 等候。"
+      },
+      {
+        type: "order",
+        title: "第 4 關｜面試流程排序",
+        dialogue: "IC MAN：把流程排對，當天就比較不會慌張。",
+        question: "請依照面試當天流程，從第一步開始點選。",
+        order: [
+          "到傳播館 O306 報到",
+          "由試務人員核對有照片的身分證件",
+          "領取面試證，並由考生親自簽名",
+          "考生與陪考人在 O306 等候",
+          "聽到唱名或叫號後，考生前往 O303 等候",
+          "由試務人員引導進入 O308 面試"
+        ],
+        shuffled: [3, 0, 5, 1, 4, 2],
+        tip: "面試流程：O306 報到與等候，唱名後到 O303 等候，再由試務人員引導進入 O308 面試。"
+      },
+      {
+        type: "choice",
+        title: "第 5 關｜面試形式",
+        dialogue: "IC MAN：知道面試形式，就不會一進去被場面嚇到。",
+        question: "淡江資傳面試形式是？",
+        options: [
+          "團體面試，大家一起搶答",
+          "三位委員對一位考生，約 5–6 分鐘",
+          "抽籤表演才藝，越浮誇越高分"
+        ],
+        answer: 1,
+        tip: "本系採單獨面試，由三位委員同時對一位考生，每位考生約 5–6 分鐘。"
+      }
+    ];
+
+    function showScreen(target) {
+      [startScreen, gameScreen, finalScreen].forEach(screen => screen.classList.remove("active"));
+      target.classList.add("active");
+    }
+
+    function startGame() {
+      stage = 0;
+      selectedItems.clear();
+      orderStep = 0;
+      showScreen(gameScreen);
+      renderStage();
+    }
+
+    function restart() {
+      showScreen(startScreen);
+    }
+
+    function renderStage() {
+      const data = stages[stage];
+      icDialogue.textContent = data.dialogue;
+      progressBar.style.width = `${(stage / stages.length) * 100}%`;
+      stageArea.innerHTML = `
+        <span class="tag">${data.title}</span>
+        <h2>${data.question}</h2>
+      `;
+
+      if (data.type === "choice") renderChoice(data);
+      if (data.type === "items") renderItems(data);
+      if (data.type === "map") renderMap(data);
+      if (data.type === "order") renderOrder(data);
+    }
+
+    function renderChoice(data) {
+      data.options.forEach((option, index) => {
+        const btn = document.createElement("div");
+        btn.className = "choice";
+        btn.textContent = option;
+        btn.onclick = () => {
+          if (index === data.answer) {
+            btn.classList.add("correct");
+            showTipAndNext(data.tip);
+          } else {
+            btn.classList.add("wrong");
+            showToast("再想一下！");
+            setTimeout(() => btn.classList.remove("wrong"), 550);
+          }
+        };
+        stageArea.appendChild(btn);
+      });
+    }
+
+    function renderItems(data) {
+      selectedItems.clear();
+      const grid = document.createElement("div");
+      grid.className = "items-grid";
+
+      data.items.forEach(item => {
+        const el = document.createElement("div");
+        el.className = "item";
+        el.innerHTML = `<div class="emoji">${item.emoji}</div><div>${item.label}</div>`;
+        el.onclick = () => {
+          if (selectedItems.has(item.key)) {
+            selectedItems.delete(item.key);
+            el.classList.remove("selected");
+          } else {
+            selectedItems.add(item.key);
+            el.classList.add("selected");
+          }
+        };
+        grid.appendChild(el);
+      });
+
+      stageArea.appendChild(grid);
+
+      const confirm = document.createElement("button");
+      confirm.className = "btn";
+      confirm.textContent = "確認背包";
+      confirm.onclick = () => {
+        if (selectedItems.has(data.required)) {
+          showTipAndNext(data.tip);
+        } else {
+          showToast("少了最重要的證件！");
+        }
+      };
+      stageArea.appendChild(confirm);
+    }
+
+    function renderMap(data) {
+      const map = document.createElement("div");
+      map.className = "map";
+      map.innerHTML = `
+        <div class="room o306" data-room="O306">O306<br>報到</div>
+        <div class="room o303" data-room="O303">O303<br>等候</div>
+        <div class="room o308" data-room="O308">O308<br>面試</div>
+        <div class="route-line">⬇️</div>
+      `;
+      stageArea.appendChild(map);
+
+      map.querySelectorAll(".room").forEach(room => {
+        room.onclick = () => {
+          if (room.dataset.room === data.answer) {
+            room.classList.add("correct");
+            showTipAndNext(data.tip);
+          } else {
+            showToast("不是第一站喔！先報到");
+          }
+        };
+      });
+    }
+
+    function renderOrder(data) {
+      orderStep = 0;
+      const help = document.createElement("p");
+      help.className = "small";
+      help.textContent = "點錯不會失敗，IC MAN 會提醒你重新看順序。";
+      stageArea.appendChild(help);
+
+      data.shuffled.forEach(index => {
+        const card = document.createElement("div");
+        card.className = "order-card";
+        card.dataset.index = index;
+        card.innerHTML = `<span class="order-number">?</span>${data.order[index]}`;
+        card.onclick = () => {
+          if (card.classList.contains("done")) return;
+          const clickedIndex = Number(card.dataset.index);
+          if (clickedIndex === orderStep) {
+            card.classList.add("done");
+            card.querySelector(".order-number").textContent = orderStep + 1;
+            orderStep++;
+            showToast("順序正確！");
+            if (orderStep >= data.order.length) {
+              showTipAndNext(data.tip);
+            }
+          } else {
+            showToast(`現在要找第 ${orderStep + 1} 步！`);
+          }
+        };
+        stageArea.appendChild(card);
+      });
+    }
+
+    function showTipAndNext(tip) {
+      launchConfetti();
+      const tipBox = document.createElement("div");
+      tipBox.className = "result-box";
+      tipBox.innerHTML = `<strong>IC MAN 提醒：</strong><br>${tip}`;
+      stageArea.appendChild(tipBox);
+
+      const nextBtn = document.createElement("button");
+      nextBtn.className = "btn yellow";
+      nextBtn.textContent = stage === stages.length - 1 ? "完成面試模擬" : "下一關";
+      nextBtn.onclick = () => {
+        stage++;
+        if (stage >= stages.length) {
+          progressBar.style.width = "100%";
+          showScreen(finalScreen);
+        } else {
+          renderStage();
+        }
+      };
+      stageArea.appendChild(nextBtn);
+      nextBtn.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.remove("show");
+      void toast.offsetWidth;
+      toast.classList.add("show");
+    }
+
+    function launchConfetti() {
+      const colors = ["#ff4d4d", "#ffd84d", "#4be16b", "#4db8ff", "#b56dff"];
+      const phone = document.querySelector(".phone");
+      for (let i = 0; i < 18; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti";
+        piece.style.background = colors[i % colors.length];
+        piece.style.left = `${35 + Math.random() * 30}%`;
+        piece.style.setProperty("--x", `${(Math.random() - 0.5) * 260}px`);
+        piece.style.setProperty("--y", `${130 + Math.random() * 260}px`);
+        piece.style.animationDelay = `${Math.random() * 0.15}s`;
+        phone.appendChild(piece);
+        setTimeout(() => piece.remove(), 1200);
+      }
+    }
+
+    function shareGame() {
+      const text = "今天面試不要迷路｜淡江資傳第二階段面試小遊戲";
+      if (navigator.share) {
+        navigator.share({ title: "今天面試不要迷路", text, url: location.href });
+      } else {
+        navigator.clipboard.writeText(text + "\n" + location.href).then(() => {
+          alert("分享文字已複製！");
+        });
+      }
+    }
+  </script>
+</body>
+</html>
